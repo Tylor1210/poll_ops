@@ -1,0 +1,108 @@
+.shell {
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	background: var(--paper);
+}
+
+.topBar {
+	padding: 1.1rem 1.25rem 0.9rem;
+	border-bottom: 1px solid var(--border);
+	background: var(--surface);
+}
+
+.topBarLabel {
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--ink-faint);
+	margin-bottom: 0.2rem;
+}
+
+.address {
+	font-size: 1.25rem;
+	line-height: 1.3;
+}
+
+.id {
+	margin-top: 0.2rem;
+	color: var(--ink-faint);
+}
+
+.content {
+	flex: 1;
+	padding: 1.25rem;
+	display: flex;
+	flex-direction: column;
+	gap: 1.25rem;
+	max-width: 640px;
+	width: 100%;
+	margin: 0 auto;
+}
+
+.blockedBanner {
+	background: var(--status-red-bg);
+	color: var(--status-red-fg);
+	padding: 1rem 1.1rem;
+	border-radius: var(--radius);
+	font-size: 0.95rem;
+	line-height: 1.5;
+}
+
+.notReady {
+	padding: 2rem 1rem;
+	text-align: center;
+	color: var(--ink-soft);
+	font-size: 0.95rem;
+}
+
+.sectionTitle {
+	font-size: 0.8rem;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--ink-faint);
+	margin-bottom: 0.6rem;
+}
+
+.prose {
+	font-size: 1.05rem;
+	line-height: 1.7;
+	white-space: pre-wrap;
+}
+
+.checklist {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.checkItem {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 0.9rem 1rem;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	font-size: 1rem;
+	min-height: 44px;
+}
+
+.qty {
+	font-family: var(--font-display);
+	font-weight: 600;
+	font-size: 1.1rem;
+	flex-shrink: 0;
+}
+
+.resourceRow {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0.9rem 1rem;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	font-size: 1rem;
+}

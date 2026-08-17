@@ -1,0 +1,68 @@
+.stepper {
+	display: flex;
+	align-items: stretch;
+	gap: 0;
+}
+
+.step {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+	min-width: 0;
+}
+
+.track {
+	display: flex;
+	align-items: center;
+}
+
+.dot {
+	width: 12px;
+	height: 12px;
+	border-radius: 999px;
+	background: var(--border);
+	flex-shrink: 0;
+}
+
+.line {
+	flex: 1;
+	height: 2px;
+	background: var(--border);
+}
+
+.step:first-child .track {
+	margin-left: 0;
+}
+
+.label {
+	font-size: 0.75rem;
+	color: var(--ink-faint);
+	font-weight: 600;
+}
+
+.step--done .dot {
+	background: var(--accent);
+}
+.step--done .line {
+	background: var(--accent);
+}
+.step--done .label {
+	color: var(--ink);
+}
+
+.step--current .dot {
+	background: var(--accent);
+	box-shadow: 0 0 0 4px var(--accent-tint);
+}
+.step--current .label {
+	color: var(--accent-strong);
+}
+
+.step--flagged .dot {
+	background: var(--status-red-fg);
+	box-shadow: 0 0 0 4px var(--status-red-bg);
+}
+.step--flagged .label {
+	color: var(--status-red-fg);
+}

@@ -1,0 +1,41 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "poll-ops",
+	"main": ".open-next/worker.js",
+	"compatibility_date": "2026-08-17",
+	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	"services": [
+		{
+			// Self-reference service binding, required by OpenNext for internal fetches
+			// see https://opennext.js.org/cloudflare/caching
+			"binding": "WORKER_SELF_REFERENCE",
+			"service": "poll-ops"
+		}
+	],
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "poll-ops-db",
+			"database_id": "41c60de3-e043-47f5-bbb1-d4624af71d99",
+			"migrations_dir": "./migrations"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "STAGE_ARTIFACTS",
+			"bucket_name": "poll-ops-stage-artifacts"
+		}
+	],
+	"ai": {
+		// Used by Stage 2 (non-remediable ADA violation judgment) and Stage 4
+		// (dispatch runbook prose). Free allocation: 10,000 neurons/day.
+		"binding": "AI"
+	},
+	"observability": {
+		"enabled": true
+	}
+}
