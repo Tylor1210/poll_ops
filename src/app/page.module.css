@@ -2,14 +2,6 @@
 	padding: 1.5rem 0 1.75rem;
 }
 
-.headerRow {
-	display: flex;
-	justify-content: space-between;
-	align-items: flex-start;
-	gap: 1rem;
-	flex-wrap: wrap;
-}
-
 .title {
 	font-size: 1.75rem;
 	margin-bottom: 0.3rem;

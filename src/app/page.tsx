@@ -3,14 +3,13 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { AdaStatusBadge, PipelineBadge } from "@/components/StatusBadge";
 import { getEnv } from "@/lib/cf";
 import { listLocationSummaries } from "@/lib/queries";
-import { getCurrentRole, permissions } from "@/lib/roles";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
 
 export default async function StatusBoardPage() {
 	const env = await getEnv();
-	const [locations, role] = await Promise.all([listLocationSummaries(env), getCurrentRole()]);
+	const locations = await listLocationSummaries(env);
 
 	const groupOrder: string[] = [];
 	const byGroup = new Map<string, typeof locations>();
@@ -28,20 +27,11 @@ export default async function StatusBoardPage() {
 			<SiteHeader />
 			<div className="page">
 				<div className={styles.header}>
-					<div className={styles.headerRow}>
-						<div>
-							<h1 className={styles.title}>Status board</h1>
-							<p className={styles.subtitle}>
-								One row per polling location, grouped by city. Open a location to run its ADA audit, generate a supply
-								manifest, and dispatch a field runbook.
-							</p>
-						</div>
-						{permissions.canManageSetup(role) && (
-							<Link href="/contracts" className="btn btn--secondary">
-								Contracts
-							</Link>
-						)}
-					</div>
+					<h1 className={styles.title}>Status board</h1>
+					<p className={styles.subtitle}>
+						One row per polling location, grouped by city. Open a location to run its ADA audit, generate a supply
+						manifest, and dispatch a field runbook.
+					</p>
 				</div>
 
 				{groupOrder.map((groupName) => (
