@@ -1,11 +1,11 @@
 .signed {
 	background: var(--status-teal-bg);
 	padding: 0.9rem 1rem;
-	border-radius: 8px;
+	border-radius: var(--radius);
 }
 
 .signature {
-	font-family: var(--font-display);
+	font-family: var(--font-body);
 	font-style: italic;
 	font-size: 1.1rem;
 	color: var(--status-teal-fg);
@@ -29,7 +29,7 @@
 }
 
 .signatureInput {
-	font-family: var(--font-display);
+	font-family: var(--font-body);
 	font-style: italic;
 	font-size: 1.05rem;
 }

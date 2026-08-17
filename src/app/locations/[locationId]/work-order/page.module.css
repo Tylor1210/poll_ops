@@ -84,13 +84,13 @@
 	padding: 0.9rem 1rem;
 	background: var(--surface);
 	border: 1px solid var(--border);
-	border-radius: 8px;
+	border-radius: var(--radius);
 	font-size: 1rem;
 	min-height: 44px;
 }
 
 .qty {
-	font-family: var(--font-display);
+	font-family: var(--font-body);
 	font-weight: 600;
 	font-size: 1.1rem;
 	flex-shrink: 0;
@@ -103,6 +103,6 @@
 	padding: 0.9rem 1rem;
 	background: var(--surface);
 	border: 1px solid var(--border);
-	border-radius: 8px;
+	border-radius: var(--radius);
 	font-size: 1rem;
 }

@@ -46,7 +46,8 @@
 	color: var(--ink-soft);
 	font-size: 0.75rem;
 	padding: 0.2rem 0.55rem;
-	border-radius: 999px;
+	border-radius: var(--radius);
+	border: 1px solid var(--border);
 }
 
 .issue {

@@ -1,0 +1,78 @@
+.banner {
+	background: var(--gov-banner-bg);
+	color: var(--ink);
+	font-size: 0.75rem;
+	border-bottom: 1px solid var(--border);
+}
+
+.bar {
+	max-width: 960px;
+	margin: 0 auto;
+	padding: 0.4rem 1.25rem;
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	flex-wrap: wrap;
+}
+
+.bar > svg {
+	flex-shrink: 0;
+	color: var(--ink-soft);
+}
+
+.toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.3rem;
+	margin-left: 0.25rem;
+	min-height: 32px;
+	padding: 0.2rem 0.3rem;
+	background: none;
+	border: none;
+	font-size: 0.75rem;
+	font-weight: 600;
+	color: var(--accent);
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+.toggle:hover {
+	color: var(--accent-strong);
+}
+
+.panel {
+	max-width: 960px;
+	margin: 0 auto;
+	padding: 1rem 1.25rem 1.25rem;
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 1.25rem;
+}
+
+@media (min-width: 640px) {
+	.panel {
+		grid-template-columns: 1fr 1fr;
+	}
+}
+
+.panelItem {
+	display: flex;
+	gap: 0.85rem;
+	align-items: flex-start;
+}
+
+.panelItem svg {
+	flex-shrink: 0;
+	color: var(--accent);
+	margin-top: 0.1rem;
+}
+
+.panelItem p {
+	font-size: 0.8125rem;
+	line-height: 1.5;
+	color: var(--ink-soft);
+}
+
+.panelItem strong {
+	color: var(--ink);
+}

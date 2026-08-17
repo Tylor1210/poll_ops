@@ -62,7 +62,7 @@
 
 .callout {
 	padding: 0.9rem 1rem;
-	border-radius: 8px;
+	border-radius: var(--radius);
 	font-size: 0.9rem;
 	line-height: 1.55;
 	margin-bottom: 1rem;
@@ -141,7 +141,7 @@
 }
 
 .statValue {
-	font-family: var(--font-display);
+	font-family: var(--font-body);
 	font-size: 1.3rem;
 	font-weight: 600;
 }
