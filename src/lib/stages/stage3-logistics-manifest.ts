@@ -12,7 +12,9 @@
 // the manifest artifact rather than silently double-booking the pool.
 
 import { getPollingLocation, listPrecinctsForLocation, replaceManifestItems, tryAllocateResource } from "@/lib/db";
+import { tryFulfillFromContracts } from "@/lib/contracts";
 import { getAuditFindings } from "@/lib/stages/stage2-ada-audit";
+import { PORTABLE_RAMP_DEPLOYMENT } from "@/lib/item-catalog";
 import { locationManifestKey } from "@/lib/r2-keys";
 
 // Synthetic v1 assumption: all logistics are scheduled for a single election
@@ -36,12 +38,23 @@ export interface BallotEquipmentPlan {
 	provisionalEnvelopes: number;
 }
 
+export interface ManifestLineItem {
+	itemType: string;
+	quantity: number;
+	// How much of `quantity` is actually covered by an active vendor
+	// contract. shortfall = quantity - fulfilledQuantity; > 0 means the
+	// coordinator needs another vendor or a contract amendment before
+	// election day, not just a routine order.
+	fulfilledQuantity: number;
+	shortfall: number;
+}
+
 export interface SupplyManifest {
 	type: "supply_manifest";
 	locationId: string;
 	generatedAt: string;
 	ballotEquipment: BallotEquipmentPlan;
-	items: Array<{ itemType: string; quantity: number }>;
+	items: ManifestLineItem[];
 	rovingTech: { requested: boolean; allocated: boolean };
 	portableRamp: { requested: boolean; allocated: boolean };
 }
@@ -98,7 +111,7 @@ export async function runStage3(
 	const precincts = await listPrecinctsForLocation(env.DB, locationId);
 	const ballotEquipment = planBallotEquipment(precincts);
 
-	const items: Array<{ itemType: string; quantity: number }> = [
+	const requestedItems: Array<{ itemType: string; quantity: number }> = [
 		{ itemType: "ballots", quantity: ballotEquipment.ballots },
 		{ itemType: "voting_booths", quantity: ballotEquipment.votingBooths },
 		{ itemType: "poll_pads", quantity: ballotEquipment.pollPads },
@@ -107,8 +120,24 @@ export async function runStage3(
 	// Kit remediation items from the audit, minus the portable ramp — that's
 	// a shared scheduled resource (resource_allocations), not a consumable.
 	for (const item of findings.remediationItems) {
-		if (item.startsWith("Portable ramp deployment")) continue;
-		items.push({ itemType: item, quantity: 1 });
+		if (item === PORTABLE_RAMP_DEPLOYMENT) continue;
+		requestedItems.push({ itemType: item, quantity: 1 });
+	}
+
+	const items: ManifestLineItem[] = [];
+	for (const requested of requestedItems) {
+		const fulfilledQuantity = await tryFulfillFromContracts(env.DB, {
+			itemType: requested.itemType,
+			locationId,
+			quantity: requested.quantity,
+			asOfDate: ELECTION_DAY,
+		});
+		items.push({
+			itemType: requested.itemType,
+			quantity: requested.quantity,
+			fulfilledQuantity,
+			shortfall: requested.quantity - fulfilledQuantity,
+		});
 	}
 
 	const rovingTechRequested = findings.status === "remediated_with_kit";
@@ -134,7 +163,11 @@ export async function runStage3(
 	await env.STAGE_ARTIFACTS.put(locationManifestKey(locationId), JSON.stringify(artifact, null, 2), {
 		httpMetadata: { contentType: "application/json" },
 	});
-	await replaceManifestItems(env.DB, locationId, items.map((i) => ({ itemType: i.itemType, quantity: i.quantity })));
+	await replaceManifestItems(
+		env.DB,
+		locationId,
+		items.map((i) => ({ itemType: i.itemType, quantity: i.quantity, status: i.shortfall > 0 ? "shortfall" : "pending" })),
+	);
 
 	return artifact;
 }

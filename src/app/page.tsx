@@ -3,50 +3,76 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { AdaStatusBadge, PipelineBadge } from "@/components/StatusBadge";
 import { getEnv } from "@/lib/cf";
 import { listLocationSummaries } from "@/lib/queries";
+import { getCurrentRole, permissions } from "@/lib/roles";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
 
 export default async function StatusBoardPage() {
 	const env = await getEnv();
-	const locations = await listLocationSummaries(env);
+	const [locations, role] = await Promise.all([listLocationSummaries(env), getCurrentRole()]);
+
+	const groupOrder: string[] = [];
+	const byGroup = new Map<string, typeof locations>();
+	for (const loc of locations) {
+		const key = loc.group?.name ?? "Ungrouped";
+		if (!byGroup.has(key)) {
+			byGroup.set(key, []);
+			groupOrder.push(key);
+		}
+		byGroup.get(key)!.push(loc);
+	}
 
 	return (
 		<>
 			<SiteHeader />
 			<div className="page">
 				<div className={styles.header}>
-					<h1 className={styles.title}>Status board</h1>
-					<p className={styles.subtitle}>
-						One row per polling location. Open a location to run its ADA audit, generate a supply manifest, and dispatch a
-						field runbook.
-					</p>
+					<div className={styles.headerRow}>
+						<div>
+							<h1 className={styles.title}>Status board</h1>
+							<p className={styles.subtitle}>
+								One row per polling location, grouped by city. Open a location to run its ADA audit, generate a supply
+								manifest, and dispatch a field runbook.
+							</p>
+						</div>
+						{permissions.canManageSetup(role) && (
+							<Link href="/contracts" className="btn btn--secondary">
+								Contracts
+							</Link>
+						)}
+					</div>
 				</div>
 
-				<ol className={styles.list}>
-					{locations.map((loc) => (
-						<li key={loc.id} className="card">
-							<Link href={`/locations/${loc.id}`} className={styles.rowLink}>
-								<div className={styles.row}>
-									<div className={styles.rowTop}>
-										<span className={styles.address}>{loc.address}</span>
-										<span className={`${styles.id} mono`}>{loc.id}</span>
-									</div>
-									<div className={styles.meta}>
-										<span>
-											{loc.precinctCount} precinct{loc.precinctCount === 1 ? "" : "s"}
-										</span>
-										<span>{loc.totalRegisteredVoters.toLocaleString()} registered voters</span>
-									</div>
-									<div className={styles.badges}>
-										<AdaStatusBadge status={loc.adaAuditStatus} />
-										<PipelineBadge stage={loc.pipelineStage} adaAuditStatus={loc.adaAuditStatus} />
-									</div>
-								</div>
-							</Link>
-						</li>
-					))}
-				</ol>
+				{groupOrder.map((groupName) => (
+					<div key={groupName} className={styles.group}>
+						<h2 className={styles.groupTitle}>{groupName}</h2>
+						<ol className={styles.list}>
+							{byGroup.get(groupName)!.map((loc) => (
+								<li key={loc.id} className="card">
+									<Link href={`/locations/${loc.id}`} className={styles.rowLink}>
+										<div className={styles.row}>
+											<div className={styles.rowTop}>
+												<span className={styles.address}>{loc.address}</span>
+												<span className={`${styles.id} mono`}>{loc.id}</span>
+											</div>
+											<div className={styles.meta}>
+												<span>
+													{loc.precinctCount} precinct{loc.precinctCount === 1 ? "" : "s"}
+												</span>
+												<span>{loc.totalRegisteredVoters.toLocaleString("en-US")} registered voters</span>
+											</div>
+											<div className={styles.badges}>
+												<AdaStatusBadge status={loc.adaAuditStatus} />
+												<PipelineBadge stage={loc.pipelineStage} adaAuditStatus={loc.adaAuditStatus} />
+											</div>
+										</div>
+									</Link>
+								</li>
+							))}
+						</ol>
+					</div>
+				))}
 			</div>
 		</>
 	);

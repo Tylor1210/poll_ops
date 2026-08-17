@@ -5,6 +5,7 @@ export interface PollingLocationRow {
 	address: string;
 	ada_audit_status: "pending" | "compliant" | "remediated_with_kit" | "needs_relocation";
 	last_audited_at: string | null;
+	group_id: string | null;
 }
 
 export interface PrecinctRow {

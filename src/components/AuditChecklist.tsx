@@ -14,7 +14,7 @@ const CHECK_LABEL: Record<CheckId, string> = {
 	signage: "Signage",
 };
 
-export function AuditChecklist({ locationId, checks }: { locationId: string; checks: AuditCheck[] }) {
+export function AuditChecklist({ locationId, checks, canEdit }: { locationId: string; checks: AuditCheck[]; canEdit: boolean }) {
 	const [editedBy, setEditedBy] = useState("");
 	const [pendingCheck, setPendingCheck] = useState<CheckId | null>(null);
 	const [error, setError] = useState<string | null>(null);
@@ -52,7 +52,7 @@ export function AuditChecklist({ locationId, checks }: { locationId: string; che
 							<span className={styles.checkName}>{CHECK_LABEL[check.id]}</span>
 							<span className={styles.detail}>{check.detail}</span>
 						</div>
-						{!check.pass && (
+						{!check.pass && canEdit && (
 							<button
 								type="button"
 								className="btn btn--secondary btn--small"
@@ -66,7 +66,7 @@ export function AuditChecklist({ locationId, checks }: { locationId: string; che
 				))}
 			</ul>
 
-			{hasFailures && (
+			{hasFailures && canEdit && (
 				<div className={styles.editPanel}>
 					<p>Marking an item remediated logs an edit with your name and the current time, and updates the audit record.</p>
 					<div className={`field ${styles.nameField}`}>

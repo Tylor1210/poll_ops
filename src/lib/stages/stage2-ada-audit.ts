@@ -14,6 +14,7 @@ import { getPollingLocation, listPrecinctsForLocation, setLocationAuditStatus } 
 import type { PollingLocationRow } from "@/lib/db";
 import { getPrecinctBaseline, runStage1 } from "@/lib/stages/stage1-precinct-intake";
 import type { AdaSurvey } from "@/lib/intake-source-data";
+import { itemLabel, PORTABLE_RAMP_DEPLOYMENT } from "@/lib/item-catalog";
 import { locationAuditKey, referenceChecklistKey } from "@/lib/r2-keys";
 
 export type CheckId = "parking" | "pathOfTravel" | "entrance" | "doorway" | "restroom" | "signage";
@@ -153,13 +154,13 @@ export async function runStage2(
 function deriveRemediationItems(checks: AuditCheck[], status: PollingLocationRow["ada_audit_status"], needsPortableRamp: boolean): string[] {
 	if (status !== "remediated_with_kit") return [];
 	const items: string[] = [];
-	if (needsPortableRamp) items.push("Portable ramp deployment (shared resource pool)");
+	if (needsPortableRamp) items.push(PORTABLE_RAMP_DEPLOYMENT);
 	for (const check of checks) {
 		if (check.pass) continue;
-		if (check.id === "parking") items.push("Accessible parking signage & cone kit");
-		if (check.id === "pathOfTravel") items.push("Temporary matting runway");
-		if (check.id === "restroom") items.push("Portable ADA-accessible restroom");
-		if (check.id === "signage") items.push("ADA entrance signage kit");
+		if (check.id === "parking") items.push("accessible_parking_kit");
+		if (check.id === "pathOfTravel") items.push("matting_runway");
+		if (check.id === "restroom") items.push("portable_restroom");
+		if (check.id === "signage") items.push("ada_signage_kit");
 	}
 	return items;
 }
@@ -189,7 +190,7 @@ export function renderAuditMarkdown(location: PollingLocationRow, findings: Audi
 		lines.push("## Remediation items");
 		lines.push("");
 		for (const item of findings.remediationItems) {
-			lines.push(`- ${item}`);
+			lines.push(`- ${itemLabel(item)}`);
 		}
 	}
 	lines.push("");

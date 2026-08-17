@@ -2,6 +2,14 @@
 	padding: 1.5rem 0 1.75rem;
 }
 
+.headerRow {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 1rem;
+	flex-wrap: wrap;
+}
+
 .title {
 	font-size: 1.75rem;
 	margin-bottom: 0.3rem;
@@ -10,6 +18,18 @@
 .subtitle {
 	color: var(--ink-soft);
 	max-width: 52ch;
+}
+
+.group {
+	margin-bottom: 1.75rem;
+}
+
+.groupTitle {
+	font-size: 0.8rem;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--ink-faint);
+	margin-bottom: 0.6rem;
 }
 
 .list {

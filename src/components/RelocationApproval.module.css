@@ -1,0 +1,46 @@
+.wrap {
+	margin-top: 1rem;
+	padding-top: 1rem;
+	border-top: 1px solid var(--border-soft);
+}
+
+.approved {
+	background: var(--status-teal-bg);
+	color: var(--status-teal-fg);
+	padding: 0.75rem 0.9rem;
+	border-radius: 8px;
+	font-size: 0.875rem;
+}
+
+.form {
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+	max-width: 420px;
+}
+
+.form p {
+	font-size: 0.825rem;
+	color: var(--ink-soft);
+}
+
+.row {
+	display: flex;
+	gap: 0.6rem;
+	align-items: flex-end;
+}
+
+.row .field {
+	flex: 1;
+}
+
+.pending {
+	font-size: 0.85rem;
+	color: var(--ink-faint);
+	font-style: italic;
+}
+
+.error {
+	color: var(--status-red-fg);
+	font-size: 0.85rem;
+}

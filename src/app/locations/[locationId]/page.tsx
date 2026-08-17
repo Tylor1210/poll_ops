@@ -2,11 +2,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { runAuditAction, runDispatchAction, runManifestAction } from "@/app/actions";
 import { AuditChecklist } from "@/components/AuditChecklist";
+import { LocationHistorySection } from "@/components/LocationHistorySection";
 import { PipelineStepper } from "@/components/PipelineStepper";
+import { RelocationApproval } from "@/components/RelocationApproval";
 import { AdaStatusBadge } from "@/components/StatusBadge";
 import { SiteHeader } from "@/components/SiteHeader";
+import { formatDateTime } from "@/lib/format";
+import { itemLabel } from "@/lib/item-catalog";
 import { getEnv } from "@/lib/cf";
 import { getLocationDetail } from "@/lib/queries";
+import { getCurrentRole, permissions } from "@/lib/roles";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -14,11 +19,13 @@ export const dynamic = "force-dynamic";
 export default async function LocationDetailPage({ params }: { params: Promise<{ locationId: string }> }) {
 	const { locationId } = await params;
 	const env = await getEnv();
-	const detail = await getLocationDetail(env, locationId);
+	const [detail, role] = await Promise.all([getLocationDetail(env, locationId), getCurrentRole()]);
 	if (!detail) notFound();
 
-	const { location, precincts, pipelineStage, auditFindings, manifest, dispatchRunbook, auditEdits } = detail;
+	const { location, group, precincts, pipelineStage, auditFindings, manifest, dispatchRunbook, auditEdits, history, signoffs } = detail;
 	const totalVoters = precincts.reduce((sum, p) => sum + p.registered_voters, 0);
+	const canRunPipeline = permissions.canRunPipeline(role);
+	const relocationSignoff = signoffs.find((s) => s.purpose === "relocation_approval") ?? null;
 
 	return (
 		<>
@@ -32,7 +39,10 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
 					<div className={styles.headerTop}>
 						<div>
 							<h1 className={styles.address}>{location.address}</h1>
-							<div className={`${styles.id} mono`}>{location.id}</div>
+							<div className={styles.id}>
+								<span className="mono">{location.id}</span>
+								{group && <span> · {group.name}</span>}
+							</div>
 						</div>
 						<AdaStatusBadge status={location.ada_audit_status} />
 					</div>
@@ -47,7 +57,7 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
 							<span className={styles.statLabel}>Precincts</span>
 						</div>
 						<div className={styles.stat}>
-							<span className={styles.statValue}>{totalVoters.toLocaleString()}</span>
+							<span className={styles.statValue}>{totalVoters.toLocaleString("en-US")}</span>
 							<span className={styles.statLabel}>Registered voters</span>
 						</div>
 					</div>
@@ -56,7 +66,7 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
 							<li key={p.id} className={styles.precinctRow}>
 								<span>{p.name}</span>
 								<span className={styles.precinctMeta}>
-									<span className="mono">{p.id}</span> · {p.registered_voters.toLocaleString()} voters ·{" "}
+									<span className="mono">{p.id}</span> · {p.registered_voters.toLocaleString("en-US")} voters ·{" "}
 									{Math.round(p.historical_turnout * 100)}% historical turnout
 								</span>
 							</li>
@@ -69,11 +79,15 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
 					{!auditFindings ? (
 						<div className={styles.emptyState}>
 							<p>This location hasn&apos;t been audited yet.</p>
-							<form action={runAuditAction.bind(null, locationId)}>
-								<button type="submit" className="btn">
-									Run ADA audit
-								</button>
-							</form>
+							{canRunPipeline ? (
+								<form action={runAuditAction.bind(null, locationId)}>
+									<button type="submit" className="btn">
+										Run ADA audit
+									</button>
+								</form>
+							) : (
+								<p className={styles.roleNote}>Your role can view but not run the audit.</p>
+							)}
 						</div>
 					) : (
 						<>
@@ -83,13 +97,16 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
 									<div style={{ marginTop: "0.4rem" }}>{auditFindings.relocationReason}</div>
 								</div>
 							)}
-							<AuditChecklist locationId={locationId} checks={auditFindings.checks} />
+							<AuditChecklist locationId={locationId} checks={auditFindings.checks} canEdit={canRunPipeline} />
 							{auditFindings.status === "remediated_with_kit" && auditFindings.remediationItems.length > 0 && (
 								<ul className={styles.remediationList}>
 									{auditFindings.remediationItems.map((item) => (
-										<li key={item}>{item}</li>
+										<li key={item}>{itemLabel(item)}</li>
 									))}
 								</ul>
+							)}
+							{auditFindings.status === "needs_relocation" && (
+								<RelocationApproval locationId={locationId} role={role} existingSignoff={relocationSignoff} />
 							)}
 						</>
 					)}
@@ -101,17 +118,21 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
 						{!manifest ? (
 							<div className={styles.emptyState}>
 								<p>No manifest generated yet.</p>
-								<form action={runManifestAction.bind(null, locationId)}>
-									<button type="submit" className="btn">
-										Generate manifest
-									</button>
-								</form>
+								{canRunPipeline ? (
+									<form action={runManifestAction.bind(null, locationId)}>
+										<button type="submit" className="btn">
+											Generate manifest
+										</button>
+									</form>
+								) : (
+									<p className={styles.roleNote}>Your role can view but not generate the manifest.</p>
+								)}
 							</div>
 						) : manifest.type === "supply_manifest" ? (
 							<>
 								<div className={styles.statGrid}>
 									<div className={styles.stat}>
-										<span className={styles.statValue}>{manifest.ballotEquipment.ballots.toLocaleString()}</span>
+										<span className={styles.statValue}>{manifest.ballotEquipment.ballots.toLocaleString("en-US")}</span>
 										<span className={styles.statLabel}>Ballots</span>
 									</div>
 									<div className={styles.stat}>
@@ -130,8 +151,15 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
 								<ul className={styles.itemList}>
 									{manifest.items.map((item) => (
 										<li key={item.itemType} className={styles.itemRow}>
-											<span>{item.itemType.replaceAll("_", " ")}</span>
-											<span>{item.quantity}</span>
+											<span>{itemLabel(item.itemType)}</span>
+											<span>
+												{item.quantity}
+												{item.shortfall > 0 && (
+													<span className="badge badge--red" style={{ marginLeft: "0.5rem" }}>
+														{item.shortfall} short
+													</span>
+												)}
+											</span>
 										</li>
 									))}
 								</ul>
@@ -166,11 +194,15 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
 						{!dispatchRunbook ? (
 							<div className={styles.emptyState}>
 								<p>No dispatch runbook generated yet.</p>
-								<form action={runDispatchAction.bind(null, locationId)}>
-									<button type="submit" className="btn">
-										Generate dispatch runbook
-									</button>
-								</form>
+								{canRunPipeline ? (
+									<form action={runDispatchAction.bind(null, locationId)}>
+										<button type="submit" className="btn">
+											Generate dispatch runbook
+										</button>
+									</form>
+								) : (
+									<p className={styles.roleNote}>Your role can view but not generate the dispatch runbook.</p>
+								)}
 							</div>
 						) : (
 							<>
@@ -185,14 +217,24 @@ export default async function LocationDetailPage({ params }: { params: Promise<{
 					</section>
 				)}
 
-				{auditEdits.length > 0 && (
+				<LocationHistorySection history={history} />
+
+				{(auditEdits.length > 0 || signoffs.length > 0) && (
 					<section className={`card ${styles.section}`} style={{ marginTop: "1rem" }}>
-						<h2 className={styles.sectionTitle}>Edit history</h2>
+						<h2 className={styles.sectionTitle}>Edit &amp; sign-off history</h2>
 						<ul className={styles.editHistory}>
+							{signoffs.map((s) => (
+								<li key={`signoff-${s.id}`} className={styles.editRow}>
+									<strong>{s.signer_name}</strong> ({s.role.replace("_", " ")}) signed{" "}
+									<strong>{s.purpose === "relocation_approval" ? "relocation approval" : "inventory receipt"}</strong> —{" "}
+									{formatDateTime(s.signed_at)}
+									{s.note ? ` — "${s.note}"` : ""}
+								</li>
+							))}
 							{auditEdits.map((edit) => (
-								<li key={edit.id} className={styles.editRow}>
+								<li key={`edit-${edit.id}`} className={styles.editRow}>
 									<strong>{edit.edited_by}</strong> marked <strong>{edit.field_changed}</strong> remediated —{" "}
-									{new Date(edit.edited_at).toLocaleString()}
+									{formatDateTime(edit.edited_at)}
 									{edit.note ? ` — "${edit.note}"` : ""}
 								</li>
 							))}

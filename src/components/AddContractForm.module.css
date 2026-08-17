@@ -1,0 +1,30 @@
+.form {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+}
+
+.row {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 0.75rem;
+}
+
+@media (min-width: 560px) {
+	.row {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+.select {
+	min-height: 44px;
+	padding: 0.5rem 0.7rem;
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	background: var(--surface);
+}
+
+.error {
+	color: var(--status-red-fg);
+	font-size: 0.85rem;
+}

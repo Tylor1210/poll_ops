@@ -1,0 +1,66 @@
+.header {
+	padding: 1.5rem 0 1.75rem;
+}
+
+.title {
+	font-size: 1.75rem;
+	margin-bottom: 0.3rem;
+}
+
+.subtitle {
+	color: var(--ink-soft);
+	max-width: 60ch;
+}
+
+.section {
+	padding: 1.1rem 1.25rem 1.25rem;
+}
+
+.sectionTitle {
+	font-size: 1.05rem;
+	margin-bottom: 0.85rem;
+}
+
+.table {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.row {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 0.3rem;
+	padding: 0.75rem 0;
+	border-bottom: 1px solid var(--border-soft);
+	font-size: 0.875rem;
+}
+
+.row:last-child {
+	border-bottom: none;
+}
+
+@media (min-width: 640px) {
+	.row {
+		grid-template-columns: 1.4fr 1fr 0.8fr 1fr;
+		align-items: center;
+	}
+}
+
+.vendor {
+	font-weight: 600;
+}
+
+.itemName {
+	color: var(--ink-soft);
+}
+
+.dates {
+	color: var(--ink-faint);
+	font-size: 0.8rem;
+}
+
+.denied {
+	padding: 2rem 0;
+	color: var(--ink-soft);
+}

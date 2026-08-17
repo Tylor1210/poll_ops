@@ -1,0 +1,40 @@
+.signed {
+	background: var(--status-teal-bg);
+	padding: 0.9rem 1rem;
+	border-radius: 8px;
+}
+
+.signature {
+	font-family: var(--font-display);
+	font-style: italic;
+	font-size: 1.1rem;
+	color: var(--status-teal-fg);
+}
+
+.meta {
+	font-size: 0.8rem;
+	color: var(--status-teal-fg);
+	margin-top: 0.3rem;
+}
+
+.form {
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+}
+
+.help {
+	font-size: 0.85rem;
+	color: var(--ink-soft);
+}
+
+.signatureInput {
+	font-family: var(--font-display);
+	font-style: italic;
+	font-size: 1.05rem;
+}
+
+.error {
+	color: var(--status-red-fg);
+	font-size: 0.85rem;
+}

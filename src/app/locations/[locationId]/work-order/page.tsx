@@ -1,20 +1,27 @@
 import { notFound } from "next/navigation";
+import { InventorySignoff } from "@/components/InventorySignoff";
+import { ItemReceiptChecklist } from "@/components/ItemReceiptChecklist";
 import { getEnv } from "@/lib/cf";
+import { itemLabel } from "@/lib/item-catalog";
 import { getLocationDetail } from "@/lib/queries";
+import { getCurrentRole, permissions } from "@/lib/roles";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
 
-// Minimal-chrome, mobile-first: this is the view a roving tech opens on
-// their phone at the curb. No nav, no status board, no editing — just
-// today's task list for this one location.
+// Minimal-chrome, mobile-first: this is the view a roving tech or poll
+// worker opens on their phone at the curb. No nav, no status board — just
+// today's task list for this one location, plus (for the poll_worker role)
+// checking items in and signing for receipt.
 export default async function WorkOrderPage({ params }: { params: Promise<{ locationId: string }> }) {
 	const { locationId } = await params;
 	const env = await getEnv();
-	const detail = await getLocationDetail(env, locationId);
+	const [detail, role] = await Promise.all([getLocationDetail(env, locationId), getCurrentRole()]);
 	if (!detail) notFound();
 
-	const { location, manifest, dispatchRunbook } = detail;
+	const { location, manifest, manifestItems, itemReceipts, dispatchRunbook, signoffs } = detail;
+	const canReceive = permissions.canReceiveItems(role);
+	const inventorySignoff = signoffs.find((s) => s.purpose === "inventory_receipt") ?? null;
 
 	return (
 		<div className={styles.shell}>
@@ -41,15 +48,19 @@ export default async function WorkOrderPage({ params }: { params: Promise<{ loca
 						{manifest?.type === "supply_manifest" && (
 							<>
 								<section>
-									<div className={styles.sectionTitle}>Bring</div>
-									<div className={styles.checklist}>
-										{manifest.items.map((item) => (
-											<div key={item.itemType} className={styles.checkItem}>
-												<span>{item.itemType.replaceAll("_", " ")}</span>
-												<span className={styles.qty}>{item.quantity}</span>
-											</div>
-										))}
-									</div>
+									<div className={styles.sectionTitle}>{canReceive ? "Check in supplies" : "Bring"}</div>
+									{manifestItems.length > 0 ? (
+										<ItemReceiptChecklist locationId={locationId} manifestItems={manifestItems} itemReceipts={itemReceipts} canReceive={canReceive} />
+									) : (
+										<div className={styles.checklist}>
+											{manifest.items.map((item) => (
+												<div key={item.itemType} className={styles.checkItem}>
+													<span>{itemLabel(item.itemType)}</span>
+													<span className={styles.qty}>{item.quantity}</span>
+												</div>
+											))}
+										</div>
+									)}
 								</section>
 
 								{(manifest.rovingTech.requested || manifest.portableRamp.requested) && (
@@ -73,6 +84,13 @@ export default async function WorkOrderPage({ params }: { params: Promise<{ loca
 												</div>
 											)}
 										</div>
+									</section>
+								)}
+
+								{(canReceive || inventorySignoff) && (
+									<section>
+										<div className={styles.sectionTitle}>Confirm receipt</div>
+										<InventorySignoff locationId={locationId} existingSignoff={inventorySignoff} canSign={canReceive} />
 									</section>
 								)}
 							</>

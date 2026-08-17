@@ -54,6 +54,12 @@
 	font-size: 0.9rem;
 }
 
+.roleNote {
+	font-size: 0.825rem;
+	color: var(--ink-faint);
+	font-style: italic;
+}
+
 .callout {
 	padding: 0.9rem 1rem;
 	border-radius: 8px;
